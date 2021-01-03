@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.marketd.persistence.CommentService_Mapper">
+
+	<select id="selectCommentList" parameterType="HashMap" resultType="cv"><!--댓글 리스트 SQL 실행 3은 보여줄 코멘트 수-->
+	
+		select cidx,midx,pidx,cwriter,ccontent,cwridate,corigincidx,cleftright,cupdown,cip,cdelip,cdelyn from
+        (select* from COMMENT32 where cdelyn='N' and pidx= #{pidx} order by corigincidx desc,cupdown )a 
+			<if test="page!=0">
+			limit #{page},5
+			</if>
+	</select>
+
+	<update id="deleteCommentAction" parameterType="cv" ><!--댓글 삭제 SQL 실행-->
+		
+		update COMMENT32
+		set cdelyn='Y', cdelip=#{cdelip} 
+		where cidx =#{cidx}
+	
+	</update>
+
+	<insert id="insertComment" parameterType="cv" > <!--댓글 작성 SQL 실행(댓글 입략, 계층처리)-->
+	
+		insert into COMMENT32(midx, pidx, cwriter, ccontent, corigincidx, cip)
+		values(#{midx}, #{pidx}, #{cwriter}, #{ccontent}, 0, #{cip})
+	
+	</insert>
+	<select id="selectCommentWrite" parameterType="cv" resultType="Integer">
+	
+	select cidx from COMMENT32 where midx=#{midx} and pidx=#{pidx} order by cidx desc limit 0,1
+	
+	</select>
+	<update id="updateCommentWrite" parameterType="Integer" ><!--댓글 삭제 SQL 실행-->
+		
+		update COMMENT32 set corigincidx=#{cori} where cidx =#{cori}
+	
+	</update>
+	
+
+	<update id="replycomment" parameterType="Integer" ><!--댓글 업뎃 준비 SQL 실행-->
+	
+		update COMMENT32 set cupdown = cupdown+1 where corigincidx = #{0} and cupdown>#{1}
+	
+	</update>
+
+	<insert id="insertCommentReply" parameterType="HashMap" > <!--댓글에 답글 작성 SQL 실행-->
+	
+		insert into COMMENT32(midx,pidx,cwriter,ccontent,corigincidx, cleftright , cupdown, cip) 
+		values(#{midx},#{pidx},#{cwriter},#{ccontent},#{corigincidx},#{cleftright}+1,#{cupdown}+1, #{cip})
+		
+	</insert>
+	
+	<select id="selectCommentOne" parameterType="Integer" resultType="cv"><!--댓글 리스트 SQL 실행 3은 보여줄 코멘트 수-->
+	
+		select cidx,midx,pidx,cwridate,corigincidx,cleftright,cupdown,cip,cdelip,cdelyn from COMMENT32 
+		where cdelyn='N' and cidx=#{cidx}  
+			
+	</select>
+	
+</mapper>

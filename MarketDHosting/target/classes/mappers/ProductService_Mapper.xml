@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.marketd.persistence.ProductService_Mapper">
+
+<select id="selectProductListTotal" parameterType="HashMap" resultType="Integer">
+
+select count(*)as tcount from PRODUCT32 where pdelYn='N' and psaleYn='N' 
+<if test='caidx!="1000"'>and caidx = #{caidx} </if>
+<if test='keyword!=""'> and psubject like '%'||#{keyword}||'%' </if>
+<if test='minPrice lte maxPrice and maxPrice!=null and maxPrice!="0" '> and pmoney  
+<![CDATA[>= #{minPrice} and  pmoney <= #{maxPrice}]]> </if>
+
+</select>
+
+<select id="selectNewProductList" parameterType="Integer" resultType="pv" > <!-- 페이징 row처리 -->
+
+select a.pidx,psubject,mname,pmoney,pwridate,uuid,uploadPath,fileName,fileType from
+ PRODUCT32 a left outer join MEMBER32 b on a.midx = b.midx
+ left outer join BOARDATTACH32 c on a.pidx = c.pidx
+ where pdelYn='N'  and psaleYn='N' order by a.pidx desc LIMIT 0,#{PAGE}
+
+
+ </select>
+ 
+ <select id="selectProductSerchList" parameterType="HashMap" resultType="pv" >
+
+
+select  * from
+ PRODUCT32 a left outer join MEMBER32 b on a.midx = b.midx 
+ left outer join CATEGORY32 c on a.caidx = c.caidx left outer join BOARDATTACH32 d on a.pidx = d.pidx
+  where pdelYn='N' and psaleYn='N'
+   <if test='caidx!="1000"'>and a.caidx = #{caidx} </if>
+
+<if test='keyword!=""'> and psubject like CONCAT('%',#{keyword},'%') </if>
+
+<if test='minPrice lte maxPrice and maxPrice!=null and maxPrice!="0" '> and pmoney 
+ <![CDATA[>= #{minPrice} and  pmoney <= #{maxPrice}]]> </if>
+ 
+  order by a.pidx desc LIMIT 0,#{page}
+  
+
+ </select>
+ 
+ 
+<!--  selectProductOne / 상품 콘텐츠 셀렉트 -->
+<select id="selectProductOne" parameterType="Integer" resultType="pv">
+  select * from PRODUCT32 A left outer join MEMBER32 B on A.midx = B.midx
+  left outer join BOARDATTACH32 C on A.pidx = C.pidx where A.pdelYn='N' and A.pidx=#{pidx}
+</select>
+
+
+
+<insert id="insertSaleProduct" parameterType="HashMap">
+	
+  insert into PRODUCT32(caidx,midx,psubject,pcontent,pmoney,pfee,pip)
+values(#{caidx},#{midx},#{psubject},#{pcontent},#{pmoney},#{pfee},#{pip})
+
+</insert>
+
+<insert id="insertShoppingCart" parameterType="Integer">
+
+  insert into SHOPPINGCART32(pidx,midx) values(#{0},#{1})
+
+</insert>
+ 
+  <select id="checkShoppingCart" parameterType="Integer" resultType="Integer" >
+  
+  select count(sidx) from SHOPPINGCART32 where pidx = #{0} and midx=#{1}
+
+</select>
+ 
+<update id="deleteSalesHistory" parameterType="Integer">
+
+  update PRODUCT32 set pdelyn='Y' where pidx = #{pidx}
+
+</update>
+
+<update id="updateDelivery" parameterType="Integer">
+
+  update DELIVERY32 set caidx=#{caidx}, dwaybill = #{dwaybill} where oidx = #{oidx}
+
+</update>
+
+ <select id="selectSalesHistoryList" parameterType="HashMap" resultType="psdto" >
+
+  select * from PRODUCT32 a left outer join ORDER32 b on a.pidx = b.pidx left outer join DELIVERY32 c on b.OIDx = c.oidx
+ left outer join PAY32 d on b.oid = d.oid left outer join BOARDATTACH32 e on a.pidx = e.pidx
+  where pdelYn='N' and a.midx=#{midx}
+ <if test='startdate!="1"'> <![CDATA[ and pwridate>=#{startdate} and pwridate<=#{lastdate}]]></if>
+  order by a.pidx desc LIMIT #{page},10
+
+</select>
+
+ <select id="selectHistoryTotal" parameterType="HashMap" resultType="Integer" >
+ 
+<if test='division == "구매"'>
+select count(*) from PRODUCT32 a LEFT outer join ORDER32 b on a.pidx = b.pidx LEFT outer join DELIVERY32 c on b.OIDX = c.OIDX
+LEFT outer join PAY32 d on b.OID = d.OID where odelyn='N' and ocancle='N' and dcancle='N'  and a.midx=#{midx} 
+<if test='startdate!="1"'> <![CDATA[ and pwridate>=#{startdate} and pwridate<=#{lastdate}]]></if>
+</if>
+
+<if test='division == "판매"'>
+select count(*) from PRODUCT32 a LEFT outer join ORDER32 b on a.pidx = b.pidx LEFT outer join DELIVERY32 c on b.OIDx = c.oidx 
+where pdelYn='N'  and a.midx=#{midx} 
+<if test='startdate!="1"'> <![CDATA[ and pwridate>=#{startdate} and pwridate<=#{lastdate}]]></if>
+</if>
+
+</select>
+
+
+<update id="updateProductconfirmation" parameterType="Integer">
+
+  update ORDER32 set ofinal = 'Y' where oidx=#{oidx}
+
+</update>
+
+
+<select id="selectPaymentHistoryList" parameterType="HashMap" resultType="psdto" >
+  
+    select * from PRODUCT32 a LEFT outer join ORDER32 b on a.pidx = b.pidx LEFT outer join DELIVERY32 c on b.oidx = c.oidx
+LEFT outer join PAY32 d on b.OID = d.OID LEFT outer join MEMBER32 e on a.midx = e.midx
+left outer join BOARDATTACH32 f on a.pidx = f.pidx where odelyn='N'
+and pacancle='N' and ocancle='N' and dcancle='N' and b.midx=#{midx}
+ <if test='startdate!="1"'> <![CDATA[ and obuydate>=#{startdate} and obuydate<=#{lastdate}]]></if>
+ order by a.pidx desc LIMIT #{page},10
+ 
+</select>
+
+<insert id="insertOrder" parameterType="HashMap">
+
+  insert into ORDER32(pidx,midx,oid,omoney,oip) values(#{pidx},#{midx},#{oid},#{omoney},#{oip})
+</insert>
+
+<insert id="insertDelivery" parameterType="HashMap">
+
+  insert into DELIVERY32(oidx,drecipt,dtell,daddr,ddetails,dmemo) values(#{oidx},#{drecipt},#{dtell},#{daddr},#{ddetails},#{dmemo})
+
+</insert>
+
+<insert id="insertPayment" parameterType="HashMap">
+
+  insert into PAY32(oid,pamoney,paname) values(#{oid},#{omoney},#{paname})
+
+</insert>
+
+<select id="selectOrderOne" parameterType="HashMap" resultType="ov" >
+  
+    select * from ORDER32 where pidx = #{pidx} and midx = #{midx}
+
+</select>
+
+<update id="updatePsale" parameterType="HashMap">
+
+    update PRODUCT32 set psaleYn = 'Y' where pidx=#{pidx}
+
+
+</update>
+
+<update id="updatePayment" parameterType="HashMap">
+
+    update PAY32 set pacomplete = 'Y' where oid=#{oid}
+
+</update>
+
+<select id="selectDelivery" parameterType="Integer" resultType="dv" >
+  
+    select * from DELIVERY32 where dcancle = 'N' and oidx = #{oidx}
+
+</select>
+
+<update id="updateOrderCancle" parameterType="Integer">
+
+    update ORDER32 set ocancle='Y' where pidx=#{pidx}
+
+</update>
+
+<update id="updatePaymentCancle" parameterType="String">
+
+    update PAY32 set pacancle='Y' where oid = #{oid}
+
+</update>
+
+<update id="updateDeliveryCancle" parameterType="Integer">
+
+    update DELIVERY32 set dcancle='Y' where oidx = #{oidx}
+
+</update>
+
+<update id="updateProductCancle" parameterType="Integer">
+
+    update PRODUCT32 set psaleYn='N' where pidx=#{pidx}
+
+</update>
+
+
+
+
+
+
+ 
+ 
+</mapper>

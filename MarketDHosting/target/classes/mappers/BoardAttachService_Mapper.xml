@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.marketd.persistence.BoardAttachService_Mapper">
+
+
+	<insert id="insert" parameterType="HashMap"> <!-- -->
+	
+	<if test='fileName != null'>
+		insert into BOARDATTACH32(uuid, uploadpath, filename, pidx)
+		values(#{uuid}, #{uploadPath}, #{fileName}, #{pidx})
+	</if>
+	<if test='fileName == null'>
+		insert into BOARDATTACH32(pidx)
+		values(#{pidx})
+	</if>
+	</insert>
+
+	
+	<delete id="delete">
+	
+		delete from TBL_ATTACH where uuid=#{uuid}
+	
+	</delete>
+	
+	<select id="findByPidx" parameterType="Integer" resultType="pv"><!--   -->
+	
+	select * from BOARDATTACH32 where pidx= #{pidx}  
+			 
+	</select>
+	
+	<select id="checkproduct" parameterType="HashMap" resultType="Integer">
+	 select pidx from PRODUCT32 where midx =#{midx} and caidx =#{caidx}
+	 and psubject =#{psubject} and pcontent =#{pcontent} 
+	 and pmoney =#{pmoney} and pfee =#{pfee} and pip =#{pip}
+	</select>
+	
+</mapper>

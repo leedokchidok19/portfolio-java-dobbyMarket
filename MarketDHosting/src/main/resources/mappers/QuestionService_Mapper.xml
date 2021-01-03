@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.marketd.persistence.QuestionService_Mapper">
+
+	<!-- 문의사항 목록 -->
+	<select id="selectQuestion" parameterType="Integer" resultType="qv" >
+		  SELECT * FROM QUESTION32 A LEFT OUTER JOIN MEMBER32 B ON
+    A.MIDX = B.MIDX LEFT OUTER JOIN CATEGORY32 C ON A.CAIDX = C.CAIDX
+    WHERE QDELYN='N' ORDER BY QIDX DESC LIMIT #{page} , 10
+ 	</select>
+ 	
+ 	<!-- 문의사항 페이징용 토탈 -->
+	<select id="selectQuestionTotal" resultType="Integer">
+		    SELECT COUNT(*) FROM QUESTION32 WHERE QDELYN='N'
+	</select>
+	
+	<!-- 문의사항 작성 -->
+	<insert id="insertQuestion" parameterType = "HashMap">
+				   INSERT INTO QUESTION32(MIDX,QSUBJECT,QCONTENT,QWRIDATE,CAIDX)VALUES(#{midx},#{qsubject},
+				   #{qcontent},NOW(),#{caidx})
+	</insert>
+	
+	<!-- 문의사항 목록 -->
+	<select id="selectQuestionOne" parameterType="Integer" resultType="qv" >
+
+		SELECT * FROM QUESTION32 A LEFT OUTER JOIN MEMBER32 B ON A.MIDX = B.MIDX
+		LEFT OUTER JOIN CATEGORY32 C ON A.CAIDX = C.CAIDX WHERE QIDX = #{qidx}
+ 	</select>
+ 	<!-- 답변 저장 -->
+ 	<update id="QuestionReply" parameterType="HashMap">
+ 	
+ 	 UPDATE QUESTION32 SET QRESUBJECT=#{qresubject},QRECONTENT=#{qrecontent},QREWRIDATE=NOW(),
+ 	 QSTATE='Y' WHERE QIDX = #{qidx}
+ 	
+ 	</update>
+ 	
+ 	 	<update id="updateQuestion" parameterType="Integer">
+ 	
+ 	    UPDATE QUESTION32 SET QUPDATE=NOW(),QDELYN='Y' WHERE QIDX =#{qidx}
+ 	
+ 	</update>
+	
+	
+</mapper>

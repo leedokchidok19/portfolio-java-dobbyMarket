@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team.marketd.persistence.MemberService_Mapper">
+
+<!--checkAotoLogin / 자동로그인 체크-->
+<select id="checkAutoLogin" parameterType = "HashMap" resultType="mv">
+<![CDATA[SELECT MIDX FROM MEMBER32 WHERE MKEY = #{mkey} AND MLIMIT >= NOW()]]>
+</select>
+
+<!--keepLogin /  자동로그인 선택-->
+<update id="keepLogin" parameterType = "HashMap">
+UPDATE MEMBER32 SET MKEY = #{mkey}, MLIMIT = DATE_ADD(NOW(), INTERVAL 7 DAY) WHERE MIDX =#{midx}
+</update>
+<!-- dropCookie / 쿠키만료일 변경하기 -->
+<update id="dropCookie" parameterType="HashMap">
+UPDATE MEMBER32 SET MLIMIT = DATE_SUB(NOW(), INTERVAL 7 DAY) WHERE MIDX = #{midx}
+</update>
+
+<!-- 회원가입 -->
+<insert id="insertProfile" parameterType = "HashMap">
+INSERT INTO MEMBER32(MID,MPWD,MNAME,MSEX,MBIRTH,MTELL,MKAKAO,MMAIL,MQUESTION,
+CAIDX,MACCOUNT,MIP)
+VALUES(#{id},#{pwd},#{name},#{sex},#{birth},
+#{tell},#{kakao},#{mail},#{mquestion},#{caidx},#{maccount},#{ip})
+</insert>
+<!-- 로그인 -->
+<select id="login" parameterType = "HashMap" resultType="mv">
+SELECT * FROM MEMBER32 WHERE MID=#{id} AND MPWD=#{pwd} AND MDELYN='N'
+</select>
+
+<!--selectDoubleIdCheck / 아이디 중복 확인-->
+<select id="selectDoubleIdCheck" parameterType = "HashMap" resultType="Integer">
+SELECT COUNT(*) FROM MEMBER32 WHERE MID=#{mid}
+</select>
+
+<!--selectIdFind / 아이디 찾기-->
+<select id="selectIdFind" parameterType = "HashMap" resultType="mv">
+SELECT MID FROM MEMBER32 WHERE MNAME = #{mname} AND MBIRTH = #{mbirth} AND MQUESTION=#{mquestion}
+</select>
+
+<!--selectPwdFind / 비밀번호 찾기-->
+<select id="selectPwdFind" parameterType = "HashMap" resultType="mv">
+SELECT MIDX,MPWD FROM MEMBER32 WHERE MID=#{mid} AND MNAME = #{mname} AND MQUESTION=#{mquestion}
+</select>
+
+<!--checkPwd / 회원정보 비밀번호 체크-->
+<select id="checkPwd" parameterType = "HashMap" resultType="mv">
+SELECT * FROM MEMBER32 WHERE MIDX = #{midx} AND MPWD=#{pwd}
+</select>
+
+<!--updeteProfile / 회원정보 수정-->
+<update id="updateProfile" parameterType = "HashMap">
+UPDATE MEMBER32 SET mpwd = #{pwd}, mtell =#{phone},mmail=#{email}, 
+caidx= #{caidx}, maccount= #{account}, mkakao= #{mkakao}, mquestion= #{mquestion} where midx = #{midx}
+</update>
+
+<!--selectProfile / 회원정보 가져오기-->
+<select id="selectProfile" parameterType = "HashMap" resultType="mv">
+SELECT * FROM MEMBER32 WHERE MIDX=#{midx}
+</select>
+<!-- 비밀번호 변경 -->
+<update id="updatePwd" parameterType= "HashMap">
+UPDATE MEMBER32 SET MPWD =#{npwd} WHERE MIDX = #{midx}
+</update>
+
+<!--deleteProfile / 회원 탈퇴 작동-->
+<update id="deleteProfile" parameterType = "Integer">
+UPDATE MEMBER32 SET MDELYN = 'Y', MDELDATE = NOW() WHERE MIDX = #{midx}
+</update>
+
+</mapper>
